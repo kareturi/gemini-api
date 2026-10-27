@@ -1,231 +1,41 @@
 import { jsx } from 'hono/jsx';
 
-export const Render = () => {
-	return (
-		<html>
-			<head>
-				<meta charset="UTF-8" />
-				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-				<title>Gemini API 密钥管理</title>
-				<script src="https://cdn.tailwindcss.com"></script>
-			</head>
-			<body class="bg-gray-100">
-				<div class="flex h-screen">
-					<div class="w-64 bg-gray-800 text-white p-4">
-						<h1 class="text-2xl font-bold mb-8">管理面板</h1>
-						<nav>
-							<a href="#" class="block py-2 px-4 rounded bg-gray-700">
-								密钥管理
-							</a>
-						</nav>
-					</div>
-					<div class="flex-1 p-8">
-						<h2 class="text-3xl font-bold mb-6">Gemini API 密钥管理</h2>
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-							<div class="bg-white p-6 rounded-lg shadow-md">
-								<h3 class="text-xl font-semibold mb-4">批量添加密钥</h3>
-								<form id="add-keys-form">
-									<textarea
-										id="api-keys"
-										class="w-full h-40 p-2 border rounded bg-gray-50"
-										placeholder="请输入API密钥，每行一个"
-									></textarea>
-									<button type="submit" class="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
-										添加密钥
-									</button>
-								</form>
-							</div>
-							<div class="bg-white p-6 rounded-lg shadow-md">
-								<div class="flex justify-between items-center mb-4">
-									<h3 class="text-xl font-semibold">已存储的密钥</h3>
-									<div>
-										<button id="check-keys-btn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition mr-2">
-											一键检查
-										</button>
-										<button id="refresh-keys-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
-											刷新
-										</button>
-									</div>
-								</div>
-								<div class="max-h-60 overflow-y-auto">
-									<table id="keys-table" class="w-full text-left">
-										<thead>
-											<tr class="border-b">
-												<th class="p-2 w-6">
-													<input type="checkbox" id="select-all-keys" />
-												</th>
-												<th class="p-2">API 密钥</th>
-												<th class="p-2">状态</th>
-											</tr>
-										</thead>
-										<tbody></tbody>
-									</table>
-								</div>
-								<button
-									id="delete-selected-keys-btn"
-									class="mt-4 w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition hidden"
-								>
-									删除选中
-								</button>
-							</div>
-						</div>
-					</div>
-				</div>
+export const Render = () => (
+	<html lang="zh-CN">
+		<head>
+			<meta charSet="UTF-8" />
+			<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+			<meta name="theme-color" content="#061218" />
+			<title>极光密钥控制台</title>
+			<link rel="preconnect" href="https://fonts.googleapis.com" />
+			<link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+			<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+			<style dangerouslySetInnerHTML={{ __html: `
+				:root{--ink:#061218;--panel:#0d2630;--panel2:#10333d;--line:rgba(167,224,228,.15);--text:#edf8f6;--muted:#8eabad;--aqua:#63dfd1;--sky:#5eabe9;--red:#ff8e8e}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:var(--ink);color:var(--text);font-family:Manrope,'Noto Sans SC',sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.hidden{display:none!important}.ambient{position:fixed;inset:0;overflow:hidden;pointer-events:none;background:radial-gradient(circle at 79% -6%,rgba(72,199,209,.14),transparent 33%),linear-gradient(150deg,#061218 0%,#081b23 55%,#050e13)}.ambient:before{content:'';position:absolute;width:75vw;height:27vw;right:-12vw;top:-4vw;border-radius:50%;filter:blur(21px);background:conic-gradient(from 230deg,transparent 0 16%,rgba(55,238,202,.35) 25%,rgba(47,153,233,.28) 39%,transparent 53%);transform:rotate(-15deg)}.login{position:relative;z-index:1;min-height:100vh;display:grid;place-items:center;padding:24px}.login-card{width:min(100%,440px);padding:42px;background:linear-gradient(145deg,rgba(17,43,53,.9),rgba(7,20,27,.9));border:1px solid var(--line);box-shadow:0 28px 80px rgba(0,0,0,.4);border-radius:24px}.mark{display:grid;place-items:center;width:46px;height:46px;color:#062029;background:linear-gradient(145deg,#9df6df,#46c9e5);border-radius:15px;box-shadow:0 0 34px rgba(83,222,205,.3)}.mark svg{width:23px}.eyebrow{margin:27px 0 10px;color:var(--aqua);font:500 11px 'DM Mono',monospace;letter-spacing:.15em;text-transform:uppercase}.login h1{margin:0;font-size:30px;letter-spacing:-.05em}.login p{margin:12px 0 28px;color:var(--muted);font-size:14px;line-height:1.7}.label{display:block;margin-bottom:8px;color:#bad1d1;font-size:12px;font-weight:700}.input,.textarea{width:100%;color:var(--text);background:rgba(3,13,18,.47);border:1px solid rgba(152,213,216,.18);outline:0;transition:.2s}.input{height:48px;padding:0 14px;border-radius:11px}.textarea{min-height:194px;padding:14px;resize:vertical;border-radius:11px;font:12px/1.65 'DM Mono',monospace}.input:focus,.textarea:focus{border-color:var(--aqua);box-shadow:0 0 0 3px rgba(88,224,209,.1)}.primary,.btn{min-height:38px;padding:0 13px;border:1px solid rgba(161,216,218,.15);border-radius:10px;font-weight:700;transition:.16s;cursor:pointer}.primary:hover,.btn:hover{transform:translateY(-1px)}.primary{color:#062029;background:linear-gradient(100deg,#86ead8,#5ec2e7);border:0}.login .primary{width:100%;height:48px;margin-top:18px}.error{min-height:20px;margin:12px 0 0;color:#ff9999;font-size:12px}.foot{margin-top:22px;color:#729094;font:11px 'DM Mono',monospace;text-align:center}.app{position:relative;z-index:1;display:flex;min-height:100vh}.sidebar{width:254px;flex:none;padding:28px 17px;border-right:1px solid var(--line);background:rgba(5,18,24,.52)}.brand{display:flex;align-items:center;gap:11px;padding:0 10px 42px;font-size:15px;font-weight:800}.brand .mark{width:31px;height:31px;border-radius:10px}.brand .mark svg{width:17px}.navcap{padding:0 11px;margin-bottom:10px;color:#6e9698;font:10px 'DM Mono',monospace;letter-spacing:.13em}.nav{display:flex;gap:11px;align-items:center;padding:12px;border:1px solid rgba(101,225,216,.13);border-radius:9px;color:#dffff8;background:linear-gradient(90deg,rgba(73,221,207,.16),rgba(64,173,228,.05));font-size:13px}.lock{position:absolute;bottom:27px;left:27px;color:#769398;font:11px 'DM Mono',monospace}.main{width:100%;max-width:1420px;margin:0 auto;padding:42px clamp(22px,4vw,64px)}.top{display:flex;justify-content:space-between;gap:20px;margin-bottom:38px}.top h1{margin:6px 0 0;font-size:clamp(27px,3vw,41px);letter-spacing:-.06em}.top p{margin:9px 0 0;color:var(--muted);font-size:13px}.session{display:flex;align-items:center;gap:9px;height:34px;padding:0 11px;border:1px solid var(--line);border-radius:999px;color:#b8d4d2;background:rgba(10,32,40,.55);font:11px 'DM Mono',monospace}.dot{width:7px;height:7px;border-radius:50%;background:var(--aqua);box-shadow:0 0 12px var(--aqua)}.signout{border:0;padding:0;color:#84a5a7;background:transparent;font-size:11px}.grid{display:grid;grid-template-columns:minmax(290px,.75fr) minmax(460px,1.25fr);gap:20px}.panel{min-width:0;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(18,47,58,.78),rgba(9,27,35,.74));box-shadow:0 16px 50px rgba(0,0,0,.15)}.pad{padding:24px}.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:23px 24px 18px;border-bottom:1px solid var(--line)}h2{margin:0;font-size:16px;letter-spacing:-.03em}.note{margin:5px 0 0;color:var(--muted);font-size:12px}.btn{color:#c8dedc;background:rgba(145,187,191,.1);font-size:12px}.btn.danger{color:#ffd2d2;background:rgba(217,79,79,.12);border-color:rgba(250,119,119,.2)}.add{width:100%;margin-top:13px}.actions{display:flex;gap:8px;flex-wrap:wrap}.table-wrap{overflow:auto;max-height:470px}.keys{width:100%;border-collapse:collapse;text-align:left}.keys th{position:sticky;top:0;z-index:1;padding:12px 15px;color:#708e92;background:#10333d;font:10px 'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase}.keys td{padding:14px 15px;border-top:1px solid rgba(167,224,228,.09);vertical-align:middle}.keys tr:hover td{background:rgba(93,208,206,.035)}.check{accent-color:#66dcd2}.key{max-width:180px;overflow:hidden;color:#dcf1ed;font:12px 'DM Mono',monospace;text-overflow:ellipsis;white-space:nowrap}.key-label,.key-note{display:block;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.key-label{color:#dceae8;font-size:12px;font-weight:700}.key-note{margin-top:3px;color:#79999c;font-size:11px}.status{font:11px 'DM Mono',monospace}.valid{color:#68e4bd}.invalid{color:#ff9898}.unknown{color:#7f9ca0}.row-actions{display:flex;justify-content:flex-end;gap:6px}.icon{display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid transparent;border-radius:8px;color:#9fc5c4;background:transparent}.icon:hover{color:#ddfffb;background:rgba(112,212,204,.1)}.icon.del:hover{color:#ffb1b1;background:rgba(243,100,100,.1)}.empty{padding:48px 22px!important;color:#789498;text-align:center;font-size:13px}.modal{position:fixed;z-index:5;inset:0;display:grid;place-items:center;padding:20px;background:rgba(2,9,12,.68);backdrop-filter:blur(6px)}.modal-card{width:min(100%,470px);padding:25px;border:1px solid rgba(124,223,217,.25);border-radius:18px;background:#0d242d;box-shadow:0 24px 70px rgba(0,0,0,.5)}.modal-card h2{font-size:19px}.modal-card p{margin:8px 0 20px;color:var(--muted);font-size:12px}.modal-grid{display:grid;gap:13px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}.toast{position:fixed;z-index:8;right:24px;bottom:24px;max-width:340px;padding:13px 15px;border:1px solid rgba(125,234,204,.3);border-radius:11px;color:#dffff7;background:#123840;box-shadow:0 12px 40px rgba(0,0,0,.3);font-size:12px}.toast.error{border-color:rgba(255,139,139,.35);color:#ffd2d2;background:#422124}@media(max-width:900px){.sidebar{display:none}.main{padding-top:28px}.grid{grid-template-columns:1fr}.top{margin-bottom:24px}}@media(max-width:560px){.main{padding:22px 14px}.panel-head,.pad{padding-left:17px;padding-right:17px}.panel-head{flex-direction:column}.actions .btn{flex:1}.keys th,.keys td{padding-left:10px;padding-right:10px}.keys th:nth-child(3),.keys td:nth-child(3){display:none}}
+			` }} />
+		</head>
+		<body>
+			<div class="ambient"></div>
+			<section id="login" class="login"><form id="login-form" class="login-card"><div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/><circle cx="12" cy="12" r="4.2"/></svg></div><div class="eyebrow">Aurora control / secure access</div><h1>进入密钥控制台</h1><p>输入访问密钥后，才可查看或管理此站点的 API 密钥池。</p><label class="label" for="access-key">访问密钥</label><input id="access-key" class="input" type="password" autocomplete="current-password" placeholder="输入访问密钥" required/><button class="primary" type="submit">验证并进入</button><div id="login-error" class="error" role="alert"></div><div class="foot">GEMINI API · PRIVATE CONSOLE</div></form></section>
+			<section id="app" class="app hidden"><aside class="sidebar"><div class="brand"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg></span>极光控制台</div><div class="navcap">工作区</div><div class="nav">✦　API 密钥管理</div><div class="lock">● 受访问密钥保护</div></aside><main class="main"><header class="top"><div><div class="eyebrow" style="margin:0">Gemini API / Key vault</div><h1>密钥管理</h1><p>添加、检查和维护你的 Gemini API 密钥池。</p></div><div class="session"><span class="dot"></span>已验证 <button id="signout" class="signout" type="button">退出</button></div></header><div class="grid"><section class="panel"><div class="pad"><h2>批量添加密钥</h2><p class="note">每行粘贴一个 API 密钥。</p><form id="add-form"><textarea id="api-keys" class="textarea" placeholder="AIza...&#10;AIza..."></textarea><button class="primary add" type="submit">添加到密钥池</button></form></div></section><section class="panel"><div class="panel-head"><div><h2>已存储的密钥</h2><p id="count" class="note">正在读取密钥池…</p></div><div class="actions"><button id="check" class="primary" type="button">检查可用性</button><button id="refresh" class="btn" type="button">刷新</button><button id="delete-selected" class="btn danger hidden" type="button">删除选中</button></div></div><div class="table-wrap"><table class="keys"><thead><tr><th><input id="select-all" class="check" type="checkbox" aria-label="选择全部"/></th><th>API 密钥</th><th>名称与备注</th><th>状态</th><th></th></tr></thead><tbody id="table-body"></tbody></table></div></section></div></main></section>
+			<div id="modal" class="modal hidden" role="dialog" aria-modal="true"><form id="edit-form" class="modal-card"><h2>编辑 API 密钥</h2><p>重命名用于识别；备注仅显示在管理控制台。</p><input id="original-key" type="hidden"/><div class="modal-grid"><label><span class="label">API 密钥</span><input id="edit-key" class="input" required/></label><label><span class="label">名称</span><input id="edit-label" class="input" maxlength={80} placeholder="例如：主力账户"/></label><label><span class="label">备注</span><input id="edit-note" class="input" maxlength={240} placeholder="例如：2026 年 10 月添加"/></label></div><div class="modal-actions"><button id="cancel-edit" class="btn" type="button">取消</button><button class="primary" type="submit">保存更改</button></div></form></div><div id="toast" class="toast hidden" role="status"></div>
+			<script dangerouslySetInnerHTML={{ __html: `
+			(() => { const state={accessKey:sessionStorage.getItem('gemini-admin-access-key')||'',keys:[]}; const $=(s)=>document.querySelector(s); const body=$('#table-body'); const esc=(v)=>String(v||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+			const signOut=(message='')=>{sessionStorage.removeItem('gemini-admin-access-key');state.accessKey='';$('#app').classList.add('hidden');$('#login').classList.remove('hidden');$('#access-key').value='';$('#login-error').textContent=message};
+			const api=async(path,options={})=>{const headers=Object.assign({'X-Admin-Key':state.accessKey},options.headers||{});const r=await fetch(path,Object.assign({},options,{headers}));let d={};try{d=await r.json()}catch(_){}if(r.status===401){signOut('访问密钥无效或已失效。');throw Error('UNAUTHORIZED')}if(!r.ok)throw Error(d.error||'请求未能完成。');return d};
+			let timer;const toast=(message,error=false)=>{const t=$('#toast');t.textContent=message;t.className='toast'+(error?' error':'');clearTimeout(timer);timer=setTimeout(()=>t.classList.add('hidden'),3200)};
+			const selection=()=>{const n=body.querySelectorAll('.key-checkbox:checked').length;$('#delete-selected').classList.toggle('hidden',!n);$('#select-all').checked=state.keys.length>0&&n===state.keys.length;$('#select-all').indeterminate=n>0&&n<state.keys.length};
+			const render=()=>{body.innerHTML='';$('#count').textContent=state.keys.length?'共 '+state.keys.length+' 个密钥，可单独编辑名称和备注。':'尚未添加任何密钥。';if(!state.keys.length){body.innerHTML='<tr><td colspan="5" class="empty">密钥池为空。先在左侧粘贴 API 密钥开始管理。</td></tr>';return selection()}state.keys.forEach(k=>{const tr=document.createElement('tr');tr.dataset.key=k.apiKey;tr.innerHTML='<td><input class="check key-checkbox" type="checkbox" data-key="'+esc(k.apiKey)+'"/></td><td><div class="key" title="'+esc(k.apiKey)+'">'+esc(k.apiKey)+'</div></td><td><span class="key-label">'+esc(k.label||'未命名密钥')+'</span><span class="key-note">'+esc(k.note||'无备注')+'</span></td><td class="status unknown">未检查</td><td><div class="row-actions"><button class="icon edit" type="button" data-key="'+esc(k.apiKey)+'" title="编辑">✎</button><button class="icon del remove" type="button" data-key="'+esc(k.apiKey)+'" title="删除">×</button></div></td>';body.appendChild(tr)});selection()};
+			const load=async()=>{body.innerHTML='<tr><td colspan="5" class="empty">正在读取密钥池…</td></tr>';try{const d=await api('/api/keys');state.keys=d.keys||[];render()}catch(e){if(e.message!=='UNAUTHORIZED'){body.innerHTML='<tr><td colspan="5" class="empty">无法读取密钥池，请稍后重试。</td></tr>';toast(e.message,true)}}};
+			const remove=async(keys)=>{if(!keys.length||!confirm('确定删除 '+keys.length+' 个 API 密钥吗？此操作无法撤销。'))return;try{const d=await api('/api/keys',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({keys})});toast(d.message||'密钥已删除。');load()}catch(e){if(e.message!=='UNAUTHORIZED')toast(e.message,true)}};
+			$('#login-form').addEventListener('submit',async e=>{e.preventDefault();state.accessKey=$('#access-key').value.trim();if(!state.accessKey)return;$('#login-error').textContent='';try{const d=await api('/api/keys');state.keys=d.keys||[];sessionStorage.setItem('gemini-admin-access-key',state.accessKey);$('#login').classList.add('hidden');$('#app').classList.remove('hidden');render()}catch(e){if(e.message!=='UNAUTHORIZED')$('#login-error').textContent=e.message}});$('#signout').onclick=()=>signOut();$('#refresh').onclick=load;
+			$('#add-form').addEventListener('submit',async e=>{e.preventDefault();const keys=$('#api-keys').value.split('\\n').map(k=>k.trim()).filter(Boolean);if(!keys.length)return toast('请至少输入一个 API 密钥。',true);try{const d=await api('/api/keys',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({keys})});$('#api-keys').value='';toast(d.message||'已添加到密钥池。');load()}catch(e){if(e.message!=='UNAUTHORIZED')toast(e.message,true)}});body.onchange=e=>{if(e.target.classList.contains('key-checkbox'))selection()};$('#select-all').onchange=e=>{body.querySelectorAll('.key-checkbox').forEach(c=>c.checked=e.target.checked);selection()};$('#delete-selected').onclick=()=>remove(Array.from(body.querySelectorAll('.key-checkbox:checked')).map(c=>c.dataset.key));
+			body.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.classList.contains('remove'))return remove([b.dataset.key]);if(b.classList.contains('edit')){const k=state.keys.find(x=>x.apiKey===b.dataset.key);if(!k)return;$('#original-key').value=k.apiKey;$('#edit-key').value=k.apiKey;$('#edit-label').value=k.label||'';$('#edit-note').value=k.note||'';$('#modal').classList.remove('hidden');$('#edit-label').focus()}};const close=()=>$('#modal').classList.add('hidden');$('#cancel-edit').onclick=close;$('#modal').onclick=e=>{if(e.target===$('#modal'))close()};
+			$('#edit-form').addEventListener('submit',async e=>{e.preventDefault();const payload={originalKey:$('#original-key').value,apiKey:$('#edit-key').value.trim(),label:$('#edit-label').value.trim(),note:$('#edit-note').value.trim()};if(!payload.apiKey)return;try{const d=await api('/api/keys',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});close();toast(d.message||'密钥信息已更新。');load()}catch(e){if(e.message!=='UNAUTHORIZED')toast(e.message,true)}});
+			$('#check').onclick=async()=>{body.querySelectorAll('.status').forEach(c=>{c.textContent='检查中';c.className='status unknown'});try{const results=await api('/api/keys/check');results.forEach(r=>{const row=Array.from(body.querySelectorAll('tr')).find(x=>x.dataset.key===r.key);const cell=row&&row.querySelector('.status');if(cell){cell.textContent=r.valid?'有效':'无效';cell.className='status '+(r.valid?'valid':'invalid')}});toast('检查完成，无效密钥已按原有规则移除。');load()}catch(e){if(e.message!=='UNAUTHORIZED')toast(e.message,true)}};
+			if(state.accessKey){$('#access-key').value=state.accessKey;$('#login-form').requestSubmit()}})();
+			` }} />
+		</body>
+	</html>
+);
 
-				<script
-					dangerouslySetInnerHTML={{
-						__html: `
-								document.addEventListener('DOMContentLoaded', () => {
-										const addKeysForm = document.getElementById('add-keys-form');
-										const apiKeysTextarea = document.getElementById('api-keys');
-										const refreshKeysBtn = document.getElementById('refresh-keys-btn');
-										const keysTableBody = document.querySelector('#keys-table tbody');
-										const selectAllCheckbox = document.getElementById('select-all-keys');
-										const deleteSelectedBtn = document.getElementById('delete-selected-keys-btn');
-										const checkKeysBtn = document.getElementById('check-keys-btn');
-
-										const fetchAndRenderKeys = async () => {
-												keysTableBody.innerHTML = '<tr><td colspan="3" class="p-2 text-center">加载中...</td></tr>';
-												try {
-												  const response = await fetch('/api/keys');
-												  const { keys } = await response.json();
-												  keysTableBody.innerHTML = '';
-												  if (keys.length === 0) {
-												    keysTableBody.innerHTML = '<tr><td colspan="3" class="p-2 text-center">暂无密钥</td></tr>';
-												  } else {
-												    keys.forEach(key => {
-												      const row = document.createElement('tr');
-															row.dataset.key = key;
-												      row.innerHTML = \`
-												        <td class="p-2 w-6"><input type="checkbox" class="key-checkbox" data-key="\${key}" /></td>
-												        <td class="p-2 font-mono">\${key}</td>
-												        <td class="p-2 status-cell">未知</td>
-												      \`;
-												      keysTableBody.appendChild(row);
-												    });
-												  }
-												} catch (error) {
-												  keysTableBody.innerHTML = '<tr><td colspan="3" class="p-2 text-center text-red-500">加载失败</td></tr>';
-												  console.error('Failed to fetch keys:', error);
-												}
-										};
-
-										const updateDeleteButtonVisibility = () => {
-												const selectedKeys = document.querySelectorAll('.key-checkbox:checked');
-												deleteSelectedBtn.classList.toggle('hidden', selectedKeys.length === 0);
-										};
-
-										keysTableBody.addEventListener('change', (e) => {
-												if (e.target.classList.contains('key-checkbox')) {
-												  updateDeleteButtonVisibility();
-												}
-										});
-
-										selectAllCheckbox.addEventListener('change', () => {
-												const checkboxes = document.querySelectorAll('.key-checkbox');
-												checkboxes.forEach(checkbox => {
-												  checkbox.checked = selectAllCheckbox.checked;
-												});
-												updateDeleteButtonVisibility();
-										});
-
-										deleteSelectedBtn.addEventListener('click', async () => {
-												const selectedKeys = Array.from(document.querySelectorAll('.key-checkbox:checked')).map(cb => cb.dataset.key);
-												if (selectedKeys.length === 0) {
-												  alert('请至少选择一个密钥。');
-												  return;
-												}
-
-												if (!confirm(\`确定要删除选中的 \${selectedKeys.length} 个密钥吗？\`)) {
-												  return;
-												}
-
-												try {
-												  const response = await fetch('/api/keys', {
-												    method: 'DELETE',
-												    headers: { 'Content-Type': 'application/json' },
-												    body: JSON.stringify({ keys: selectedKeys }),
-												  });
-												  const result = await response.json();
-												  if (response.ok) {
-												    alert(result.message || '密钥删除成功。');
-												    fetchAndRenderKeys();
-												    updateDeleteButtonVisibility();
-												    selectAllCheckbox.checked = false;
-												  } else {
-												    alert(\`删除密钥失败: \${result.error || '未知错误'}\`);
-												  }
-												} catch (error) {
-												  alert('请求失败，请检查网络连接。');
-												  console.error('Failed to delete keys:', error);
-												}
-										});
-
-										checkKeysBtn.addEventListener('click', async () => {
-											const rows = keysTableBody.querySelectorAll('tr');
-											rows.forEach(row => {
-												const statusCell = row.querySelector('.status-cell');
-												if (statusCell) {
-													statusCell.textContent = '检查中...';
-													statusCell.className = 'p-2 status-cell text-gray-500';
-												}
-											});
-
-											try {
-												const response = await fetch('/api/keys/check');
-												const results = await response.json();
-												results.forEach(result => {
-													const row = keysTableBody.querySelector(\`tr[data-key="\${result.key}"]\`);
-													if (row) {
-														const statusCell = row.querySelector('.status-cell');
-														if (statusCell) {
-															statusCell.textContent = result.valid ? '有效' : '无效';
-															statusCell.className = result.valid ? 'p-2 status-cell text-green-500' : 'p-2 status-cell text-red-500';
-														}
-													}
-												});
-											} catch (error) {
-												alert('检查密钥失败，请查看控制台获取更多信息。');
-												console.error('Failed to check keys:', error);
-											}
-										});
-
-										addKeysForm.addEventListener('submit', async (e) => {
-												e.preventDefault();
-												const keys = apiKeysTextarea.value.split('\\n').map(k => k.trim()).filter(k => k !== '');
-												if (keys.length === 0) {
-												  alert('请输入至少一个API密钥。');
-												  return;
-												}
-												try {
-												  const response = await fetch('/api/keys', {
-												    method: 'POST',
-												    headers: { 'Content-Type': 'application/json' },
-												    body: JSON.stringify({ keys }),
-												  });
-												  const result = await response.json();
-												  if (response.ok) {
-												    alert(result.message || '密钥添加成功。');
-												    apiKeysTextarea.value = '';
-												    fetchAndRenderKeys();
-												  } else {
-												    alert(\`添加密钥失败: \${result.error || '未知错误'}\`);
-												  }
-												} catch (error) {
-												  alert('请求失败，请检查网络连接。');
-												  console.error('Failed to add keys:', error);
-												}
-										});
-
-										refreshKeysBtn.addEventListener('click', fetchAndRenderKeys);
-
-										// Initial load
-										fetchAndRenderKeys();
-								});
-				  `,
-					}}
-				></script>
-			</body>
-		</html>
-	);
-};
