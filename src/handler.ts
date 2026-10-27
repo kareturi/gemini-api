@@ -663,11 +663,31 @@ export class LoadBalancer extends DurableObject {
 				});
 			}
 
-			for (const key of keys) {
-				await this.ctx.storage.sql.exec('INSERT OR IGNORE INTO api_keys (api_key) VALUES (?)', key);
+			const uniqueKeys = [...new Set(keys.map((key) => key.trim()).filter(Boolean))];
+			if (uniqueKeys.length === 0) {
+				return new Response(JSON.stringify({ error: '请求体中没有有效的密钥。' }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				});
 			}
 
-			return new Response(JSON.stringify({ message: 'API密钥添加成功。' }), {
+			const placeholders = uniqueKeys.map(() => '?').join(',');
+			const existingKeys = new Set(
+				this.ctx.storage.sql
+					.exec(`SELECT api_key FROM api_keys WHERE api_key IN (${placeholders})`, ...uniqueKeys)
+					.toArray()
+					.map((row: any) => row.api_key)
+			);
+			const newKeys = uniqueKeys.filter((key) => !existingKeys.has(key));
+			for (const key of newKeys) {
+				this.ctx.storage.sql.exec('INSERT INTO api_keys (api_key) VALUES (?)', key);
+			}
+
+			const skipped = keys.length - newKeys.length;
+			const message = newKeys.length
+				? `成功添加 ${newKeys.length} 个密钥${skipped ? `，跳过 ${skipped} 个已存在或重复密钥。` : '。'}`
+				: `未添加新密钥，${skipped} 个密钥均已存在或重复。`;
+			return new Response(JSON.stringify({ message, added: newKeys.length, skipped }), {
 				status: 200,
 				headers: { 'Content-Type': 'application/json' },
 			});
