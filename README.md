@@ -70,10 +70,12 @@ Youtube: https://youtu.be/_5a6HfL2wn4
 部署完成后，你可以通过访问你的 Worker URL 来管理 Gemini API 密钥。
 
 *   **访问管理面板**: 在浏览器中打开你的 Worker URL (例如 `https://gemini-balance-do.your-worker.workers.dev`)。
+*   **输入访问密钥**: 管理面板会先要求输入访问密钥。可通过 `wrangler secret put ADMIN_ACCESS_KEY` 设置专用的面板访问密钥；未设置时为保持兼容，会使用现有的 `AUTH_KEY`。验证通过前，无法读取或修改密钥池。
 *   **批量添加密钥**: 在文本框中输入你的 Gemini API 密钥，每行一个，然后点击“添加密钥”。
 *   **查看和刷新**: 在右侧面板可以查看已存储的密钥，并可以点击“刷新”按钮更新列表。
 *   **一键检查**： 点击“一键检查”按钮，可以检查 API key 可用性。
 *   **批量删除**： 选中无效的 API key，可以一键删除所有无效的 API key。
+*   **单独管理**： 每个 API key 都可以单独删除、重命名（替换其值）以及填写名称和备注。
 
 ## 💻 API 用法
 
@@ -91,3 +93,7 @@ API 密钥: `ajielu`
 *   `POST /api/keys`: 批量添加 API 密钥。请求体为 `{"keys": ["key1", "key2"]}`。
 *   `GET /api/keys/check`: 检查所有密钥的有效性
 *   `DELETE /api/keys`: 批量删除 API 密钥。请求体为 `{["key1", "key2"]}`
+*   `PATCH /api/keys`: 更新单个密钥和其名称、备注。请求体为 `{"originalKey":"key1","apiKey":"key2","label":"名称","note":"备注"}`。
+
+以上管理接口需要请求头 `X-Admin-Key: <ADMIN_ACCESS_KEY 或 AUTH_KEY>`。
+
