@@ -49,7 +49,16 @@ export class LoadBalancer extends DurableObject {
 		super(ctx, env);
 		this.env = env;
 		// Initialize the database schema upon first creation.
-		this.ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS api_keys (api_key TEXT PRIMARY KEY)');
+		this.ctx.storage.sql.exec(
+			"CREATE TABLE IF NOT EXISTS api_keys (api_key TEXT PRIMARY KEY, label TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '')"
+		);
+		// Existing deployments used a single-column table. Keep the migration additive so their key pool remains intact.
+		try {
+			this.ctx.storage.sql.exec("ALTER TABLE api_keys ADD COLUMN label TEXT NOT NULL DEFAULT ''");
+		} catch (_) {}
+		try {
+			this.ctx.storage.sql.exec("ALTER TABLE api_keys ADD COLUMN note TEXT NOT NULL DEFAULT ''");
+		} catch (_) {}
 	}
 
 	async fetch(request: Request): Promise<Response> {
@@ -60,6 +69,13 @@ export class LoadBalancer extends DurableObject {
 		const url = new URL(request.url);
 		const pathname = url.pathname;
 
+		if (pathname.startsWith('/api/keys') && !this.isAdminRequest(request)) {
+			return new Response(JSON.stringify({ error: '未授权访问管理接口。' }), {
+				status: 401,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+
 		// Admin API routes
 		if (pathname === '/api/keys' && request.method === 'POST') {
 			return this.handleApiKeys(request);
@@ -69,6 +85,9 @@ export class LoadBalancer extends DurableObject {
 		}
 		if (pathname === '/api/keys' && request.method === 'DELETE') {
 			return this.handleDeleteApiKeys(request);
+		}
+		if (pathname === '/api/keys' && request.method === 'PATCH') {
+			return this.handleUpdateApiKey(request);
 		}
 		if (pathname === '/api/keys/check' && request.method === 'GET') {
 			return this.handleApiKeysCheck();
@@ -687,6 +706,54 @@ export class LoadBalancer extends DurableObject {
 		}
 	}
 
+	async handleUpdateApiKey(request: Request): Promise<Response> {
+		try {
+			const { originalKey, apiKey, label = '', note = '' } = (await request.json()) as {
+				originalKey: string;
+				apiKey: string;
+				label?: string;
+				note?: string;
+			};
+			if (!originalKey || !apiKey || typeof label !== 'string' || typeof note !== 'string') {
+				return new Response(JSON.stringify({ error: '密钥信息无效。' }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+			if (label.length > 80 || note.length > 240) {
+				return new Response(JSON.stringify({ error: '名称或备注长度超出限制。' }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+
+			const existing = this.ctx.storage.sql.exec('SELECT 1 FROM api_keys WHERE api_key = ?', originalKey).toArray();
+			if (existing.length === 0) {
+				return new Response(JSON.stringify({ error: '未找到要更新的密钥。' }), {
+					status: 404,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+
+			this.ctx.storage.sql.exec(
+				'UPDATE api_keys SET api_key = ?, label = ?, note = ? WHERE api_key = ?',
+				apiKey,
+				label,
+				note,
+				originalKey
+			);
+			return new Response(JSON.stringify({ message: '密钥信息已更新。' }), {
+				headers: { 'Content-Type': 'application/json' },
+			});
+		} catch (error: any) {
+			console.error('更新API密钥失败:', error);
+			return new Response(JSON.stringify({ error: error.message || '内部服务器错误' }), {
+				status: 500,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+	}
+
 	async handleApiKeysCheck(): Promise<Response> {
 		try {
 			const results = await this.ctx.storage.sql.exec('SELECT api_key FROM api_keys').raw<any>();
@@ -726,8 +793,10 @@ export class LoadBalancer extends DurableObject {
 
 	async getAllApiKeys(): Promise<Response> {
 		try {
-			const results = await this.ctx.storage.sql.exec('SELECT * FROM api_keys').raw<any>();
-			const keys = Array.from(results);
+			const keys = this.ctx.storage.sql
+				.exec('SELECT api_key, label, note FROM api_keys ORDER BY rowid DESC')
+				.toArray()
+				.map((row: any) => ({ apiKey: row.api_key, label: row.label || '', note: row.note || '' }));
 			return new Response(JSON.stringify({ keys }), {
 				headers: { 'Content-Type': 'application/json' },
 			});
@@ -746,7 +815,7 @@ export class LoadBalancer extends DurableObject {
 
 	private async getRandomApiKey(): Promise<string | null> {
 		try {
-			const results = await this.ctx.storage.sql.exec('SELECT * FROM api_keys ORDER BY RANDOM() LIMIT 1').raw<any>();
+			const results = await this.ctx.storage.sql.exec('SELECT api_key FROM api_keys ORDER BY RANDOM() LIMIT 1').raw<any>();
 			const keys = Array.from(results);
 			if (keys) {
 				const key = keys[0] as any;
@@ -758,6 +827,13 @@ export class LoadBalancer extends DurableObject {
 			console.error('获取随机API密钥失败:', error);
 			return null;
 		}
+	}
+
+	private isAdminRequest(request: Request): boolean {
+		// ADMIN_ACCESS_KEY separates dashboard access from the proxy credential when configured.
+		// Falling back keeps existing deployments working until they opt in to a dedicated secret.
+		const adminAccessKey = (this.env as Env & { ADMIN_ACCESS_KEY?: string }).ADMIN_ACCESS_KEY || this.env.AUTH_KEY;
+		return Boolean(adminAccessKey) && request.headers.get('x-admin-key') === adminAccessKey;
 	}
 
 	private async handleOpenAI(request: Request): Promise<Response> {
@@ -802,3 +878,4 @@ export class LoadBalancer extends DurableObject {
 		}
 	}
 }
+
