@@ -70,8 +70,9 @@ export class LoadBalancer extends DurableObject {
 		const pathname = url.pathname;
 
 		if (pathname.startsWith('/api/keys') && !this.isAdminRequest(request)) {
-			return new Response(JSON.stringify({ error: '未授权访问管理接口。' }), {
-				status: 401,
+			const hasAdminAccessKey = Boolean(this.getAdminAccessKey());
+			return new Response(JSON.stringify({ error: hasAdminAccessKey ? '访问密钥不正确。' : '未配置后台访问密钥。请设置 ADMIN_ACCESS_KEY 或 AUTH_KEY 后重新部署。' }), {
+				status: hasAdminAccessKey ? 401 : 503,
 				headers: { 'Content-Type': 'application/json' },
 			});
 		}
@@ -850,10 +851,14 @@ export class LoadBalancer extends DurableObject {
 	}
 
 	private isAdminRequest(request: Request): boolean {
+		const adminAccessKey = this.getAdminAccessKey();
+		return Boolean(adminAccessKey) && request.headers.get('x-admin-key') === adminAccessKey;
+	}
+
+	private getAdminAccessKey(): string | undefined {
 		// ADMIN_ACCESS_KEY separates dashboard access from the proxy credential when configured.
 		// Falling back keeps existing deployments working until they opt in to a dedicated secret.
-		const adminAccessKey = (this.env as Env & { ADMIN_ACCESS_KEY?: string }).ADMIN_ACCESS_KEY || this.env.AUTH_KEY;
-		return Boolean(adminAccessKey) && request.headers.get('x-admin-key') === adminAccessKey;
+		return (this.env as Env & { ADMIN_ACCESS_KEY?: string }).ADMIN_ACCESS_KEY || this.env.AUTH_KEY;
 	}
 
 	private async handleOpenAI(request: Request): Promise<Response> {
